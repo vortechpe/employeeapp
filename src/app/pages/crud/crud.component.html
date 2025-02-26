@@ -1,0 +1,150 @@
+<p-toolbar styleClass="mb-6">
+    <ng-template #start>
+        <p-button label="Agregar" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
+    </ng-template>
+
+    <ng-template #end>
+        <p-button label="Export" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
+    </ng-template>
+</p-toolbar>
+
+<p-table
+    [value]="employees"
+    [rows]="5"
+    [paginator]="true"
+    [totalRecords]="totalRecords"
+    [lazy]="true"
+    (onLazyLoad)="loadEmployeeLazy($event)"
+    [rowsPerPageOptions]="[5, 10, 20]"
+>
+    <ng-template #caption>
+        <div class="flex items-center justify-between">
+            <h5 class="m-0">Empleados</h5>
+            <p-iconfield>
+                <p-inputicon styleClass="pi pi-search" />
+                <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="Search..." />
+            </p-iconfield>
+        </div>
+    </ng-template>
+    <ng-template #header>
+        <tr>
+            <th style="min-width: 2rem">Id</th>
+            <th  style="min-width:16rem">
+                Nombre
+            </th>
+            <th>Apellidos</th>
+            <th>DNI</th>
+            <th style="min-width: 8rem">
+                Fecha de cumpleaños
+            </th>
+            <th style="min-width:10rem">
+                Fecha de contratación
+
+            </th>
+            <th  style="min-width: 12rem">
+                Salario
+            </th>
+            <th style="min-width: 12rem">
+                Posición
+            </th>
+            <th style="min-width: 12rem">
+                AFP
+            </th>
+            <th style="min-width: 12rem">Acciones</th>
+        </tr>
+    </ng-template>
+    <ng-template #body let-employee>
+        <tr>
+
+            <td style="min-width: 2rem">{{ employee.employeeId }}</td>
+            <td style="min-width: 12rem">{{ employee.firstName }}</td>
+            <td style="min-width: 12rem">{{ employee.lastName }}</td>
+            <td style="min-width: 12rem">{{ employee.documentoNumber }}</td>
+            <td style="min-width: 12rem">{{ employee.dateOfBirth | date }}</td>
+            <td style="min-width: 12rem">{{ employee.hireDate | date }}</td>
+            <td style="min-width: 12rem">{{ employee.salary }}</td>
+            <td style="min-width: 12rem">{{ employee.position }}</td>
+            <td style="min-width: 12rem">{{ employee.afp }}</td>
+
+
+            <td>
+                <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="getEmployee(employee.employeeId)" />
+                <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="delete(employee.employeeId)" />
+            </td>
+        </tr>
+    </ng-template>
+</p-table>
+
+<p-dialog [(visible)]="objectDialog" [style]="{ width: '600px' }" [header]="title" [modal]="true">
+    <form [formGroup]="objectForm" >
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block font-bold mb-1">Nombres</label>
+                <input type="text" pInputText formControlName="firstName" required class="w-full"
+                [ngClass]="{'ng-invalid':objectForm.controls['firstName'].invalid, 'ng-dirty': objectForm.controls['firstName'].touched}"  />
+            </div>
+
+            <div>
+                <label class="block font-bold mb-1">Apellidos</label>
+                <input type="text" pInputText formControlName="lastName" maxlength="50" required class="w-full"
+                [ngClass]="{'ng-invalid':objectForm.controls['lastName'].invalid, 'ng-dirty': objectForm.controls['lastName'].touched}" />
+            </div>
+
+            <div>
+                <label class="block font-bold mb-1">Fecha de Cumpleaños</label>
+                <p-datepicker appendTo="body" styleClass="w-full"  maxlength="100" formControlName="dateOfBirth"
+                [ngClass]="{'ng-invalid':objectForm.controls['dateOfBirth'].invalid, 'ng-dirty': objectForm.controls['dateOfBirth'].touched}"
+                ></p-datepicker>
+            </div>
+
+            <div>
+                <label class="block font-bold mb-1">Fecha de Ingreso</label>
+                <p-datepicker appendTo="body" styleClass="w-full" formControlName="hireDate"
+                [ngClass]="{'ng-invalid':objectForm.controls['hireDate'].invalid, 'ng-dirty': objectForm.controls['hireDate'].touched}"
+                ></p-datepicker>
+            </div>
+
+            <div>
+                <label class="block font-bold mb-1">Salario</label>
+                <p-inputnumber formControlName="salary" class="w-full" inputId="minmax" mode="decimal" styleClass="w-full" [min]="1000" [max]="99999"  maxlength="9"
+                [ngClass]="{'ng-invalid':objectForm.controls['salary'].invalid, 'ng-dirty': objectForm.controls['salary'].touched}"
+                />
+                <!-- <input type="number" pInputText formControlName="salary" [min]="0" [max]="99999" required class="w-full" /> -->
+            </div>
+
+            <div>
+                <label class="block font-bold mb-1">Número de Documento</label>
+                <p-inputnumber class="w-full" formControlName="documentoNumber" mode="decimal"  [max]="99999999" inputId="withoutgrouping" [useGrouping]="false"
+                [ngClass]="{'ng-invalid':objectForm.controls['documentoNumber'].invalid, 'ng-dirty': objectForm.controls['documentoNumber'].touched}"/>
+                <!-- <input type="number" pInputText formControlName="documentoNumber" maxlength="8" required class="w-full" /> -->
+            </div>
+
+            <div>
+                <label class="block font-bold mb-1">AFPs</label>
+                <p-dropdown [options]="afps"  appendTo="body" formControlName="afpId" [optionLabel]="'name'" [optionValue]="'afpId'" styleClass="w-full"
+                [ngClass]="{'ng-invalid':objectForm.controls['afpId'].invalid, 'ng-dirty': objectForm.controls['afpId'].touched}"
+                ></p-dropdown>
+            </div>
+
+            <div>
+                <label class="block font-bold mb-1">Posiciones</label>
+                <p-dropdown [options]="positions"  appendTo="body" formControlName="positionId" [optionLabel]="'name'" [optionValue]="'positionId'" styleClass="w-full"
+                [ngClass]="{'ng-invalid':objectForm.controls['positionId'].invalid, 'ng-dirty': objectForm.controls['positionId'].touched}"
+                ></p-dropdown>
+            </div>
+        </div>
+    </form>
+
+    <!-- Footer directamente dentro del p-dialog -->
+    <div class="flex justify-end gap-2 mt-4">
+        <p-button label="Cancelar" icon="pi pi-times" text (click)="hideDialog()"></p-button>
+        <p-button label="Guardar" icon="pi pi-check" (click)="save()"></p-button>
+    </div>
+</p-dialog>
+
+
+
+
+
+<p-toast></p-toast>
+<p-confirmdialog [style]="{ width: '450px' }" />
